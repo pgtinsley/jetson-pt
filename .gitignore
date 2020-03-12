@@ -1,4 +1,1 @@
-*.pkl
-*.json
-*.avi
-*.mp4
+jetson-inference/
