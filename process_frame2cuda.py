@@ -21,10 +21,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--network', type=str, default='facenet', help='path to input video file')
 parser.add_argument('--overlay', type=str, default='box,labels,conf', help='detection overlay flags')
 parser.add_argument('--threshold', type=float, default=0.5, help='minimum detection threshold to use')
+
 parser.add_argument('--video', type=str, help='path to input video file', required=True)
-parser.add_argument('--out', type=str, help='path to output video file')
 parser.add_argument('--pkl', type=str, help='path to output pickle file', required=True)
 parser.add_argument('--json', type=str, help='path to output json file', required=True)
+
+parser.add_argument('--chip', type=int, default=0, help='0 for no chips saved, 1 for saving chips')
 
 args = parser.parse_args()
 
