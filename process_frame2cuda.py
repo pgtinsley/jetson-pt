@@ -44,6 +44,13 @@ capture_height = int(capture.get(4))
 to_return = {}
 frame_number = 0
 
+root = args.video.split('/')[2].split('.')[0]
+# root = 'P1E_S1_C1'
+
+if args.chip == 1:
+    print('Making ./videos/vid{}_net{}_skip{}/chips'.format(root))
+    os.system('mkdir ./videos/vid{}_net{}_skip{}/chips'.format(root))
+
 while True:
     
     frame_number += 1
@@ -78,7 +85,7 @@ while True:
                 bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
                 enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
                 chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
-                chip.save('frame{}_det{}.png'.format(frame_number, i))
+                chip.save('./videos/vid{}_net{}_skip{}/chips/frame{}_det{}.png'.format(root, frame_number, i))
                 detections_dict['det_'+str(i)] = {
                     'bbox': bbox,
                     'enc': list(enc),
