@@ -51,50 +51,99 @@ if args.chip == 1:
     print('Making ./videos/vid{}_net{}_skip{}/chips'.format(root))
     os.system('mkdir ./videos/vid{}_net{}_skip{}/chips'.format(root))
 
-while True:
-    
-    frame_number += 1
-    
-    if  frame_number % args.skip == 0:
-    
-        ret, frame = capture.read()
-    
-        if not ret:
-            break
-    
-        rgb_frame = frame[:, :, ::-1]
-        cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
-    
-        detections = net.Detect(cuda_frame, capture_width, capture_height, args.overlay)
-    
-        detections_dict = {}
+if args.network=='facenet':
+
+    while True:
         
-        if args.chip == 0: # do NOT save chips     
+        frame_number += 1
         
-            for i, detection in enumerate(detections):
-                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
-                detections_dict['det_'+str(i)] = {
-                    'bbox': bbox,
-                    'enc': list(enc),
-                }
+        if  frame_number % args.skip == 0:
         
-        else: # do save chips
+            ret, frame = capture.read()
         
-            for i, detection in enumerate(detections):
-                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
-                chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
-                chip.save('./videos/vid{}_net{}_skip{}/chips/frame{}_det{}.png'.format(root, frame_number, i))
-                detections_dict['det_'+str(i)] = {
-                    'bbox': bbox,
-                    'enc': list(enc),
-                    'chip': chip,
-                }
+            if not ret:
+                break
         
-        detections_dict['fps'] = net.GetNetworkFPS()
+            rgb_frame = frame[:, :, ::-1]
+            cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
         
-        to_return['frame_'+str(frame_number)] = detections_dict
+            detections = net.Detect(cuda_frame, capture_width, capture_height, args.overlay)
+        
+            detections_dict = {}
+            
+            if args.chip == 0: # do NOT save chips     
+            
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
+                    detections_dict['det_'+str(i)] = {
+                        'bbox': bbox,
+                        'enc': list(enc),
+                    }
+            
+            else: # do save chips
+            
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
+                    chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                    chip.save('./videos/vid{}_net{}_skip{}/chips/frame{}_det{}.png'.format(root, frame_number, i))
+                    detections_dict['det_'+str(i)] = {
+                        'bbox': bbox,
+                        'enc': list(enc),
+                        'chip': chip,
+                    }
+            
+            detections_dict['fps'] = net.GetNetworkFPS()
+            
+            to_return['frame_'+str(frame_number)] = detections_dict
+
+else:
+
+    while True:
+        
+        frame_number += 1
+        
+        if  frame_number % args.skip == 0:
+        
+            ret, frame = capture.read()
+        
+            if not ret:
+                break
+        
+            rgb_frame = frame[:, :, ::-1]
+            cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+        
+            detections = net.Detect(cuda_frame, capture_width, capture_height, args.overlay)
+        
+            detections_dict = {}
+            
+            if args.chip == 0: # do NOT save chips     
+            
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+#                     enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
+                    detections_dict['det_'+str(i)] = {
+                        'bbox': bbox,
+                        'enc': list(enc),
+                    }
+            
+            else: # do save chips
+            
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
+                    chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                    chip.save('./videos/vid{}_net{}_skip{}/chips/frame{}_det{}.png'.format(root, frame_number, i))
+                    detections_dict['det_'+str(i)] = {
+                        'bbox': bbox,
+                        'enc': list(enc),
+                        'chip': chip,
+                    }
+            
+            detections_dict['fps'] = net.GetNetworkFPS()
+            
+            to_return['frame_'+str(frame_number)] = detections_dict
          
 capture.release()
 
