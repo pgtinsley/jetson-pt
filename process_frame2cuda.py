@@ -14,6 +14,8 @@ import cv2
 import numpy as np
 import face_recognition
 
+from PIL import Image
+
 ##### ARGS
 
 parser = argparse.ArgumentParser()
@@ -26,7 +28,8 @@ parser.add_argument('--video', type=str, help='path to input video file', requir
 parser.add_argument('--pkl', type=str, help='path to output pickle file', required=True)
 parser.add_argument('--json', type=str, help='path to output json file', required=True)
 
-parser.add_argument('--chip', type=int, default=0, help='0 for no chips saved, 1 for saving chips')
+parser.add_argument('--skip', type=int, default=10, help='integer interval to process every Xth frame')
+parser.add_argument('--chip', type=int, default=0, help='0 = do NOT save chips; 1 = save chips')
 
 args = parser.parse_args()
 
@@ -44,33 +47,50 @@ frame_number = 0
 while True:
     
     frame_number += 1
-    ret, frame = capture.read()
-
-    if not ret:
-        break
-
-    rgb_frame = frame[:, :, ::-1]
-    cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
-
-    detections = net.Detect(cuda_frame, capture_width, capture_height, args.overlay)
-
-    detections_dict = {}
-    for i, detection in enumerate(detections):
-        bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-        encs = face_recognition.face_encodings(rgb_frame, [bbox])
-        enc = np.zeros(128,)
-        if len(encs)>0: enc = encs[0]
-        detections_dict['det_'+str(i)] = {
-            'bbox': bbox,
-            'enc': list(enc),
-        }
     
-    to_return['frame_'+str(frame_number)] = detections_dict
+    if  frame_number % args.skip == 0:
+    
+        ret, frame = capture.read()
+    
+        if not ret:
+            break
+    
+        rgb_frame = frame[:, :, ::-1]
+        cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+    
+        detections = net.Detect(cuda_frame, capture_width, capture_height, args.overlay)
+    
+        detections_dict = {}
+        
+        if args.chip == 0: # do NOT save chips     
+        
+            for i, detection in enumerate(detections):
+                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
+                detections_dict['det_'+str(i)] = {
+                    'bbox': bbox,
+                    'enc': list(enc),
+                }
+        
+        else: # do save chips
+        
+            for i, detection in enumerate(detections):
+                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
+                chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                chip.save('frame{}_det{}.png'.format(frame_number, i))
+                detections_dict['det_'+str(i)] = {
+                    'bbox': bbox,
+                    'enc': list(enc),
+                    'chip': chip,
+                }
+        
+        to_return['frame_'+str(frame_number)] = detections_dict
          
 capture.release()
 
 with open(args.pkl, 'wb') as f:
     pickle.dump(to_return, f)
 
-with open(args.json, 'w') as json_file:
-  json.dump(to_return, json_file)
+with open(args.json, 'w') as json_f:
+    json.dump(to_return, json_f)
