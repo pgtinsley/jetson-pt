@@ -92,6 +92,8 @@ while True:
                     'chip': chip,
                 }
         
+        detections_dict['fps'] = net.GetNetworkFPS()
+        
         to_return['frame_'+str(frame_number)] = detections_dict
          
 capture.release()
