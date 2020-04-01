@@ -1,8 +1,10 @@
 
 ##### LIBS
 
+import io
 import glob
 import json
+from json import JSONEncoder
 import pickle
 import os, sys
 import argparse
@@ -22,230 +24,257 @@ from PIL import Image
 
 def body_chip0(capture, capture_width, capture_height, net, skip, out_fname):
     
-    to_return = {}
-    frame_number = 0
-
-    while True:
-        
-        frame_number += 1
-
-        if frame_number % skip == 0:
-        
-            ret, frame = capture.read()
-        
-            if not ret:
-                break
+    if not os.path.exists(out_fname):
+    
+        to_return = {}
+        frame_number = 0
+    
+        while True:
             
-            rgb_frame = frame[:, :, ::-1]
-            cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+            frame_number += 1
+    
+            if frame_number % skip == 0:
             
-            detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                ret, frame = capture.read()
             
-            detections_dict = {}
-            detections_dict['fps'] = net.GetNetworkFPS()
-                            
-            for i, detection in enumerate(detections):
-                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                detections_dict['det_'+str(i)] = {
-                    'conf': detection.Confidence,
-                    'bbox': bbox,
-                }
+                if not ret:
+                    break
                 
-            to_return['frame_'+str(frame_number)] = detections_dict
-
-    with open(out_fname, 'w') as f:
-        json.dump(to_return, f)
+                rgb_frame = frame[:, :, ::-1]
+                cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+                
+                detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                
+                detections_dict = {}
+                detections_dict['fps'] = net.GetNetworkFPS()
+                                
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    detections_dict['det_'+str(i)] = {
+                        'conf': detection.Confidence,
+                        'bbox': bbox,
+                    }
+                    
+                to_return['frame_'+str(frame_number)] = detections_dict
+    
+        with open(out_fname, 'w') as f:
+            json.dump(to_return, f)
 
 def body_chip1(capture, capture_width, capture_height, net, skip, out_fname):
     
-    to_return = {}
-    frame_number = 0
-
-    while True:
-        
-        frame_number += 1
-
-        if frame_number % skip == 0:
-        
-            ret, frame = capture.read()
-        
-            if not ret:
-                break
+    if not os.path.exists(out_fname):
+    
+        to_return = {}
+        frame_number = 0
+    
+        while True:
             
-            rgb_frame = frame[:, :, ::-1]
-            cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+            frame_number += 1
+    
+            if frame_number % skip == 0:
             
-            detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                ret, frame = capture.read()
             
-            detections_dict = {}
-            detections_dict['fps'] = net.GetNetworkFPS()
-                            
-            for i, detection in enumerate(detections):
-                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                chip = rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]]
-                detections_dict['det_'+str(i)] = {
-                    'conf': detection.Confidence,
-                    'bbox': bbox,
-                    'chip': chip,
-                }
+                if not ret:
+                    break
                 
-            to_return['frame_'+str(frame_number)] = detections_dict
-
-    with open(out_fname, 'w') as f:
-        json.dump(to_return, f)
-
+                rgb_frame = frame[:, :, ::-1]
+                cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+                
+                detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                
+                detections_dict = {}
+                detections_dict['fps'] = net.GetNetworkFPS()
+                                
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                    
+                    buf = io.BytesIO()
+                    chip.save(buf, format='PNG')
+                    chip_size = buf.tell()
+                    
+                    detections_dict['det_'+str(i)] = {
+                        'conf': detection.Confidence,
+                        'bbox': bbox,
+                        'chip_size': chip_size,
+                    }
+                    
+                to_return['frame_'+str(frame_number)] = detections_dict
+    
+        with open(out_fname, 'w') as f:
+            json.dump(to_return, f)
+        
 def face_feat0_chip0(capture, capture_width, capture_height, net, skip, out_fname):
     
-    to_return = {}
-    frame_number = 0
-
-    while True:
-        
-        frame_number += 1
-
-        if frame_number % skip == 0:
-        
-            ret, frame = capture.read()
-        
-            if not ret:
-                break
+    if not os.path.exists(out_fname):
+    
+        to_return = {}
+        frame_number = 0
+    
+        while True:
             
-            rgb_frame = frame[:, :, ::-1]
-            cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+            frame_number += 1
+    
+            if frame_number % skip == 0:
             
-            detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                ret, frame = capture.read()
             
-            detections_dict = {}
-            detections_dict['fps'] = net.GetNetworkFPS()
-                            
-            for i, detection in enumerate(detections):
-                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                detections_dict['det_'+str(i)] = {
-                    'conf': detection.Confidence,
-                    'bbox': bbox,
-                }
+                if not ret:
+                    break
                 
-            to_return['frame_'+str(frame_number)] = detections_dict
-
-    with open(out_fname, 'w') as f:
-        json.dump(to_return, f)
-
+                rgb_frame = frame[:, :, ::-1]
+                cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+                
+                detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                
+                detections_dict = {}
+                detections_dict['fps'] = net.GetNetworkFPS()
+                                
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    detections_dict['det_'+str(i)] = {
+                        'conf': detection.Confidence,
+                        'bbox': bbox,
+                    }
+                    
+                to_return['frame_'+str(frame_number)] = detections_dict
+    
+        with open(out_fname, 'w') as f:
+            json.dump(to_return, f)
+        
 def face_feat0_chip1(capture, capture_width, capture_height, net, skip, out_fname):
     
-    to_return = {}
-    frame_number = 0
-
-    while True:
-        
-        frame_number += 1
-
-        if frame_number % skip == 0:
-        
-            ret, frame = capture.read()
-        
-            if not ret:
-                break
+    if not os.path.exists(out_fname):
+    
+        to_return = {}
+        frame_number = 0
+    
+        while True:
             
-            rgb_frame = frame[:, :, ::-1]
-            cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+            frame_number += 1
+    
+            if frame_number % skip == 0:
             
-            detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                ret, frame = capture.read()
             
-            detections_dict = {}
-            detections_dict['fps'] = net.GetNetworkFPS()
-                            
-            for i, detection in enumerate(detections):
-                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                chip = rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]]
-                detections_dict['det_'+str(i)] = {
-                    'conf': detection.Confidence,
-                    'bbox': bbox,
-                    'chip': chip,
-                }
+                if not ret:
+                    break
                 
-            to_return['frame_'+str(frame_number)] = detections_dict
-
-    with open(out_fname, 'w') as f:
-        json.dump(to_return, f)
-
+                rgb_frame = frame[:, :, ::-1]
+                cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+                
+                detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                
+                detections_dict = {}
+                detections_dict['fps'] = net.GetNetworkFPS()
+                                
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                    
+                    buf = io.BytesIO()
+                    chip.save(buf, format='PNG')
+                    chip_size = buf.tell()
+                    
+                    detections_dict['det_'+str(i)] = {
+                        'conf': detection.Confidence,
+                        'bbox': bbox,
+                        'chip_size': chip_size,
+                    }
+                    
+                to_return['frame_'+str(frame_number)] = detections_dict
+    
+        with open(out_fname, 'w') as f:
+            json.dump(to_return, f)
+        
 def face_feat1_chip0(capture, capture_width, capture_height, net, skip, out_fname):
     
-    to_return = {}
-    frame_number = 0
-
-    while True:
-        
-        frame_number += 1
-
-        if frame_number % skip == 0:
-        
-            ret, frame = capture.read()
-        
-            if not ret:
-                break
+    if not os.path.exists(out_fname):
+    
+        to_return = {}
+        frame_number = 0
+    
+        while True:
             
-            rgb_frame = frame[:, :, ::-1]
-            cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+            frame_number += 1
+    
+            if frame_number % skip == 0:
             
-            detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                ret, frame = capture.read()
             
-            detections_dict = {}
-            detections_dict['fps'] = net.GetNetworkFPS()
-                            
-            for i, detection in enumerate(detections):
-                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
-                detections_dict['det_'+str(i)] = {
-                    'conf': detection.Confidence,
-                    'bbox': bbox,
-                    'enc': enc
-                }
+                if not ret:
+                    break
                 
-            to_return['frame_'+str(frame_number)] = detections_dict
-
-    with open(out_fname, 'w') as f:
-        json.dump(to_return, f)
-
+                rgb_frame = frame[:, :, ::-1]
+                cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+                
+                detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                
+                detections_dict = {}
+                detections_dict['fps'] = net.GetNetworkFPS()
+                                
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
+                    detections_dict['det_'+str(i)] = {
+                        'conf': detection.Confidence,
+                        'bbox': bbox,
+                        'enc': enc
+                    }
+                    
+                to_return['frame_'+str(frame_number)] = detections_dict
+    
+        with open(out_fname, 'w') as f:
+            json.dump(to_return, f)
+        
 def face_feat1_chip1(capture, capture_width, capture_height, net, skip, out_fname):
     
-    to_return = {}
-    frame_number = 0
-
-    while True:
-        
-        frame_number += 1
-
-        if frame_number % skip == 0:
-        
-            ret, frame = capture.read()
-        
-            if not ret:
-                break
+    if not os.path.exists(out_fname):
+    
+        to_return = {}
+        frame_number = 0
+    
+        while True:
             
-            rgb_frame = frame[:, :, ::-1]
-            cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+            frame_number += 1
+    
+            if frame_number % skip == 0:
             
-            detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                ret, frame = capture.read()
             
-            detections_dict = {}
-            detections_dict['fps'] = net.GetNetworkFPS()
-                            
-            for i, detection in enumerate(detections):
-                bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                chip = rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]]
-                enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
-                detections_dict['det_'+str(i)] = {
-                    'conf': detection.Confidence,
-                    'bbox': bbox,
-                    'enc': enc,
-                    'chip': chip
-                }
+                if not ret:
+                    break
                 
-            to_return['frame_'+str(frame_number)] = detections_dict
-
-    with open(out_fname, 'w') as f:
-        json.dump(to_return, f)
-
+                rgb_frame = frame[:, :, ::-1]
+                cuda_frame = jetson.utils.cudaFromNumpy(cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA))
+                
+                detections = net.Detect(cuda_frame, capture_width, capture_height, 'box,labels,conf')
+                
+                detections_dict = {}
+                detections_dict['fps'] = net.GetNetworkFPS()
+                                
+                for i, detection in enumerate(detections):
+                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                    
+                    buf = io.BytesIO()
+                    chip.save(buf, format='PNG')
+                    chip_size = buf.tell()
+                    
+                    enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
+                    detections_dict['det_'+str(i)] = {
+                        'conf': detection.Confidence,
+                        'bbox': bbox,
+                        'enc': enc,
+                        'chip_size': chip_size
+                    }
+                    
+                to_return['frame_'+str(frame_number)] = detections_dict
+    
+        with open(out_fname, 'w') as f:
+            json.dump(to_return, f)
+        
 #####
 
 def process_video(in_video, network, feat, chip, skip, out_fname):
