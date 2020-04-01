@@ -82,7 +82,7 @@ def body_chip1(capture, capture_width, capture_height, net, skip, out_fname):
                             
             for i, detection in enumerate(detections):
                 bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                chip = rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]]
                 detections_dict['det_'+str(i)] = {
                     'conf': detection.Confidence,
                     'bbox': bbox,
@@ -156,7 +156,7 @@ def face_feat0_chip1(capture, capture_width, capture_height, net, skip, out_fnam
                             
             for i, detection in enumerate(detections):
                 bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                chip = rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]]
                 detections_dict['det_'+str(i)] = {
                     'conf': detection.Confidence,
                     'bbox': bbox,
@@ -232,7 +232,7 @@ def face_feat1_chip1(capture, capture_width, capture_height, net, skip, out_fnam
                             
             for i, detection in enumerate(detections):
                 bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
-                chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
+                chip = rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]]
                 enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
                 detections_dict['det_'+str(i)] = {
                     'conf': detection.Confidence,
