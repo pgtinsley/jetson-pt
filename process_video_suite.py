@@ -22,6 +22,12 @@ from PIL import Image
 
 ##### FUNCTIONS
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
 def body_chip0(capture, capture_width, capture_height, net, skip, out_fname):
     
     if not os.path.exists(out_fname):
@@ -226,7 +232,7 @@ def face_feat1_chip0(capture, capture_width, capture_height, net, skip, out_fnam
                 to_return['frame_'+str(frame_number)] = detections_dict
     
         with open(out_fname, 'w') as f:
-            json.dump(to_return, f)
+            json.dump(to_return, f, cls=NumpyEncoder)
         
 def face_feat1_chip1(capture, capture_width, capture_height, net, skip, out_fname):
     
@@ -273,7 +279,7 @@ def face_feat1_chip1(capture, capture_width, capture_height, net, skip, out_fnam
                 to_return['frame_'+str(frame_number)] = detections_dict
     
         with open(out_fname, 'w') as f:
-            json.dump(to_return, f)
+            json.dump(to_return, f, cls=NumpyEncoder)
         
 #####
 
