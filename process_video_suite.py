@@ -93,7 +93,7 @@ def body_chip1(capture, capture_width, capture_height, net, skip, out_fname):
                 detections_dict['fps'] = net.GetNetworkFPS()
                                 
                 for i, detection in enumerate(detections):
-                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    bbox = ( max( 0, int(detection.Top) ), min( capture_width, int(detection.Right) ), min( capture_height, int(detection.Bottom) ), max(0 , int(detection.Left) ) )
                     chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
                     
                     buf = io.BytesIO()
@@ -176,7 +176,7 @@ def face_feat0_chip1(capture, capture_width, capture_height, net, skip, out_fnam
                 detections_dict['fps'] = net.GetNetworkFPS()
                                 
                 for i, detection in enumerate(detections):
-                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    bbox = ( max( 0, int(detection.Top) ), min( capture_width, int(detection.Right) ), min( capture_height, int(detection.Bottom) ), max(0 , int(detection.Left) ) )
                     chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
                     
                     buf = io.BytesIO()
@@ -261,7 +261,7 @@ def face_feat1_chip1(capture, capture_width, capture_height, net, skip, out_fnam
                 detections_dict['fps'] = net.GetNetworkFPS()
                                 
                 for i, detection in enumerate(detections):
-                    bbox = (int(detection.Top), int(detection.Right), int(detection.Bottom), int(detection.Left))
+                    bbox = ( max( 0, int(detection.Top) ), min( capture_width, int(detection.Right) ), min( capture_height, int(detection.Bottom) ), max(0 , int(detection.Left) ) )
                     chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
                     
                     buf = io.BytesIO()
