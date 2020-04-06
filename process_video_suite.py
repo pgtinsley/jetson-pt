@@ -97,7 +97,7 @@ def body_chip1(capture, capture_width, capture_height, net, skip, out_fname):
                     chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
                     
                     buf = io.BytesIO()
-                    chip.save(buf, format='PNG')
+                    chip.save(buf, format='PNG', quality=30, optimize=True)
                     chip_size = buf.tell()
                     
                     detections_dict['det_'+str(i)] = {
@@ -180,7 +180,7 @@ def face_feat0_chip1(capture, capture_width, capture_height, net, skip, out_fnam
                     chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
                     
                     buf = io.BytesIO()
-                    chip.save(buf, format='PNG')
+                    chip.save(buf, format='PNG', quality=30, optimize=True)
                     chip_size = buf.tell()
                     
                     detections_dict['det_'+str(i)] = {
@@ -265,7 +265,7 @@ def face_feat1_chip1(capture, capture_width, capture_height, net, skip, out_fnam
                     chip = Image.fromarray( rgb_frame[bbox[0]: bbox[2], bbox[3]: bbox[1]] )
                     
                     buf = io.BytesIO()
-                    chip.save(buf, format='PNG')
+                    chip.save(buf, format='PNG', quality=30, optimize=True)
                     chip_size = buf.tell()
                     
                     enc = face_recognition.face_encodings(rgb_frame, [bbox])[0]
@@ -321,7 +321,8 @@ for video_fname in video_fnames:
         for feat in [0, 1]:
             for chip in [0, 1]:
                 for skip in [5,15,30]:
-                    out_fname = video_fname.split('.mp4')[0]+'_'+network+'_feat'+str(feat)+'_chip'+str(chip)+'_skip'+str(skip)+'.json'
+                    out_fname = video_fname.split('.mp4')[0]+'_'+network+'_feat'+str(feat)+'_chip'+str(chip)+'_skip'+str(skip)+'_comp30_opt.json'
+#                     out_fname = video_fname.split('.mp4')[0]+'_'+network+'_feat'+str(feat)+'_chip'+str(chip)+'_skip'+str(skip)+'.json'
                     process_video(video_fname, network, feat, chip, skip, out_fname)
     
     
